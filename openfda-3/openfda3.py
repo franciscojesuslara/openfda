@@ -3,7 +3,7 @@
 
 import socket
 
-PORT = 8004
+PORT = 8001
 MAX_OPEN_REQUESTS = 5
 
 def process_client(clientsocket):
@@ -23,8 +23,8 @@ def process_client(clientsocket):
 
     list = []
     i = 0
-    intro = "<ol>" + "\n"
-    end = "<\ol>"
+    intro = "<!doctype html>"+"\n"+"<html>"+"\n" +"\t"+ "<body>"+"\n"+"<ol>" + "\n"
+    end = "<\ol>"+"\n"+ "<body>"+"<html>"
 
     while i < 10:
         if 'active_ingredient' in repos['results'][i]:
