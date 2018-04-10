@@ -12,16 +12,16 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        with open("search.html","r") as f:
-            if self.path == "/":
-                message = f.read()
-            elif search in self.path:
-                message =
-            else:
-                message =
+        if self.path == "/":
+            with open("search.html", "r") as f:
+                f=f.read()
+                self.wfile.write(bytes(f, "utf8"))
+        elif self.path =="search":
+            params=self.path.split("?")[1]
+            limit = params.split("&")[1].split("=")[1]
+            drug=params.split("&")[0].split("=")[1]
 
-
-        self.wfile.write(bytes(message, "utf8"))
+            self.wfile.write(bytes(drug + limit, "utf8"))
         print("File served")
         return
 
