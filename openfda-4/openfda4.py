@@ -1,9 +1,12 @@
-import http.server
+mport http.server
 import socketserver
+import json
+import http.client
 
 # -- IP and the port of the server
 IP = "localhost"  # Localhost means "I": your local machine
-PORT = 8007
+PORT = 8014
+
 
 # HTTPRequestHandler class
 class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -12,17 +15,29 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
+
+
         if self.path == "/":
             with open("search.html", "r") as f:
-                f=f.read()
-                self.wfile.write(bytes(f, "utf8"))
-        elif self.path =="search":
-            params=self.path.split("?")[1]
-            limit = params.split("&")[1].split("=")[1]
-            drug=params.split("&")[0].split("=")[1]
+                message = f.read()
+                self.wfile.write(bytes(message, "utf8"))
 
-            self.wfile.write(bytes(drug + limit, "utf8"))
-        print("File served")
+        elif "search" in self.path:
+            headers = {'User-Agent': 'http-client'}
+            conn = http.client.HTTPSConnection("api.fda.gov")
+            params = self.path.split("?")[1]
+            drug = params.split("&")[0].split("=")[1]
+            limit = params.split("&")[1].split("=")[1]
+            url = "/drug/label.json?search=active_ingredient:" + drug + "&" + "limit=" + limit
+            print(url)
+            conn.request("GET", url, None, headers)
+            r1 = conn.getresponse()
+            drugs_raw = r1.read().decode("utf-8")
+            conn.close()
+            drugs = json.loads(drugs_raw)
+            drugs_1 = str(drugs)
+            self.wfile.write(bytes(drugs_1, "utf8"))
+
         return
 
 
@@ -31,6 +46,7 @@ Handler = testHTTPRequestHandler
 
 httpd = socketserver.TCPServer((IP, PORT), Handler)
 print("serving at port", PORT)
+print("prueba")
 try:
     httpd.serve_forever()
 except KeyboardInterrupt:
