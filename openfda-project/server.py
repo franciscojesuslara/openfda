@@ -43,7 +43,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             conn = http.client.HTTPSConnection("api.fda.gov")
             params = self.path.split("?")[1]
             company = params.split("&")[0].split("=")[1]
-            limit = params.split("&")[1].split("=")[1]
+            limit = params.split("&")[1].split("=")[1]#sd
             url = "/drug/label.json?search=brand_name:" + company + "&" + "limit=" + limit
             print(url)
             conn.request("GET", url, None, headers)
