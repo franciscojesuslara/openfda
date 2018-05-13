@@ -21,7 +21,7 @@ class OpenFDAClient():
         drugs_raw = r1.read().decode("utf-8")
         conn.close()
         drugs = json.loads(drugs_raw)
-        drugs_1 = str(drugs)
+        drugs_1 = drugs
         return drugs_1
 
     def company(self,drug,limit):
@@ -34,7 +34,7 @@ class OpenFDAClient():
         drugs_raw = r1.read().decode("utf-8")
         conn.close()
         drugs = json.loads(drugs_raw)
-        drugs_1 = str(drugs)
+        drugs_1 = drugs
         return drugs_1
 
 
@@ -48,7 +48,7 @@ class OpenFDAClient():
         drugs_raw = r1.read().decode("utf-8")
         conn.close()
         drugs = json.loads(drugs_raw)
-        drugs_1 = str(drugs)
+        drugs_1 = drugs
         return drugs_1
 
 Client = OpenFDAClient()
@@ -60,28 +60,23 @@ class OpenFDAHTML():
         intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "\t" + "<body>" + "\n" + "<ol>" + "\n"
         end = "<\ol>" + "\n" + "<body>" + "<html>"
 
-
-HTML = OpenFDAHTML()
-
-
-class OpenFDAparser():
-    def data_drug(self,drug_1,list):
-        for element in drugs_1["results"]:
-            print(element['id'])
-            list.append(element['id'])
-
-        with open("listdrug.html", "w") as f:
+        with open("data.html", "w") as f:
             f.write(intro)
             for element in list:
                 element_1 = "<\t>" + "<li>" + element
                 f.write(element_1)
             f.write(end)
 
-        with open("listdrug.html", "r") as f:
-            file = f.read()
+HTML = OpenFDAHTML()
 
-    def data_company(self, drug_1, list):
-        for element in drugs_1["results"]:
+class OpenFDAparser():
+    def data_drug(self,drugs_1,list):
+        for i in range(len(drugs_1['results'])):
+            if 'active_ingredient' in drugs_1['results'][i]:
+                list.append(drugs_1['results'][i]['active_ingredient'][0])
+
+    def data_company(self, drugs_1, list):
+        for element in range(len(drugs_1["results"])):
             try:
                 element=element["openfda"]["manufacturer_name"][0]
                 list.append(element)
@@ -89,18 +84,9 @@ class OpenFDAparser():
                 element= " Unknow"
                 list.append(element)
 
-            with open("listcompanies.html", "w") as f:
-                f.write(intro)
-                for element in list:
-                    element_1 = "<\t>" + "<li>" + element
-                    f.write(element_1)
-                f.write(end)
-
-            with open("listcompanies.html", "r") as f:
-                file = f.read()
 
         def data_warning(self, drug_1, list):
-            for element in drugs_1["results"]:
+            for element in range(len(drugs_1["results"])):
                 try:
                     element = element["warnings"][0]
                     list.append(element)
@@ -108,17 +94,7 @@ class OpenFDAparser():
                     element = "Unknow"
                     list.append(element)
 
-            with open("listWarnings.html", "w") as f:
-                f.write(intro)
-                for element in list:
-                    element_1 = "<\t>" + "<li>" + element
-                    f.write(element_1)
-                f.write(end)
-
-            with open("listWarnings.html", "r") as f:
-                 file = f.read()
-
-Parser = OpenFDAParser()
+Parser = OpenFDAparser()
 
 
 class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -155,33 +131,34 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-                if "&" in self.path:
-                    params = self.path.split("?")[1]
-                    drug = params.split("&")[0].split("=")[1]
-                    limit = params.split("&")[1].split("=")[1]
-                    esmeralda = Client.company(drug, limit)
-                    Parser.data_company(esmeralda, list)
-                elif "&" not in self.path:
-                    params = self.path.split("?")[1]
-                    drug = params.split("&")[0].split("=")[1]
-                    limit = 10
-                    drug_limit = Client.active_component(drug, limit)
-                    Parser.data_drug(drug_limit, list)
-                HTML.html(list)
+            if "&" in self.path:
+                params = self.path.split("?")[1]
+                drug = params.split("&")[0].split("=")[1]
+                limit = params.split("&")[1].split("=")[1]
+                esmeralda = Client.company(drug, limit)
+                Parser.data_company(esmeralda, list)
+            elif "&" not in self.path:
+                params = self.path.split("?")[1]
+                drug = params.split("&")[0].split("=")[1]
+                limit = 10
+                drug_limit = Client.active_component(drug, limit)
+                Parser.data_drug(drug_limit, list)
+            HTML.html(list)
 
-        elif "listDrug" in self.path:
+        elif "searchCompany" in self.path:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             params = self.path.split("?")[1]
             limit = params.split("=")[1]
 
-            rojo= Client.active_componentlist(limit)
+            rojo= Client.list(limit)
 
             Parser.data_company(rojo,list)
 
             HTML.html(list)
-
+            with open("data.html", "r") as f:
+                file = f.read()
             self.wfile.write(bytes(file, "utf8"))
 
             web_contents = file
@@ -189,19 +166,22 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             web_headers += "\n" + "Content-Type: text/html"
             web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
 
-        elif "listCompanies" in self.path:
+        elif "data" in self.path:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             params = self.path.split("?")[1]
             limit = params.split("=")[1]
-            self.wfile.write(bytes(file, "utf8"))
+
 
             rubi= Client.list(limit)
 
             Parser.data_company(rubi, list)
 
             HTML.html(list)
+            with open("data.html", "r") as f:
+                file = f.read()
+            self.wfile.write(bytes(file, "utf8"))
             web_contents = file
             web_headers = "HTTP/1.1 200"
             web_headers += "\n" + "Content-Type: text/html"
@@ -214,19 +194,20 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             params = self.path.split("?")[1]
             limit = params.split("=")[1]
-                plata = Client.list(limit)
+            plata = Client.list(limit)
 
-                Parser.data_warning(plata, list)
+            Parser.data_warning(plata, list)
 
-                HTML.html(list)
+            HTML.html(list)
 
+            with open("data.html", "r") as f:
+                file = f.read()
+            self.wfile.write(bytes(file, "utf8"))
 
-                self.wfile.write(bytes(file, "utf8"))
-
-                web_contents = file
-                web_headers = "HTTP/1.1 200"
-                web_headers += "\n" + "Content-Type: text/html"
-                web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
+            web_contents = file
+            web_headers = "HTTP/1.1 200"
+            web_headers += "\n" + "Content-Type: text/html"
+            web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
         elif "secret" in self.path:
             self.send_response(401)
             self.send_header("WWW-Authenticate", "Basic realm='OpenFDA Private Zone")
@@ -240,17 +221,21 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         else:
             with open("Error.html", "w") as f:
                 self.send_response(404)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "\t" + "<body>" + "\n" + "<ol>" + "\n"
+                end = "<\ol>" + "\n" + "<body>" + "<html>"
                 f.write(intro)
                 element="The HTML requested is not supported"
                 f.write(element)
                 f.write(end)
-        with open("Error.html", "r") as f:
-            file = f.read()
-            self.wfile.write(bytes(file, "utf8"))
-            web_contents = file
-            web_headers = "HTTP/1.1 200"
-            web_headers += "\n" + "Content-Type: text/html"
-            web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
+            with open("Error.html", "r") as f:
+                file = f.read()
+                self.wfile.write(bytes(file, "utf8"))
+                web_contents = file
+                web_headers = "HTTP/1.1 200"
+                web_headers += "\n" + "Content-Type: text/html"
+                web_headers += "\n" + "Content-Length: %i" % len(str.encode(web_contents))
 
 # Handler = http.server.SimpleHTTPRequestHandler
 Handler = testHTTPRequestHandler
