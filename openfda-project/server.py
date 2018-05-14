@@ -51,7 +51,7 @@ class OpenFDAClient():
         drugs_1 = drugs
         return drugs_1
 
-Client = OpenFDAClient()
+Connection = OpenFDAClient()
 
 class OpenFDAHTML():
     def html(self, list_1):
@@ -136,7 +136,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     limit = "10"
                     params = self.path.split("?")[1]
                     drug = params.split("&")[0].split("=")[1]
-                    rojo= Client.active_component(drug, limit)
+                    rojo= Connection.active_component(drug, limit)
                     Parser.data_drug(rojo, list_1)
 
                 elif "&" in self.path:
@@ -145,7 +145,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     limit = params.split("&")[1].split("=")[1]
                     if not limit:
                         limit = "10"
-                    rojo = Client.active_component(drug, limit)
+                    rojo = Connection.active_component(drug, limit)
                     Parser.data_drug(rojo, list_1)
 
                 file=HTML.html(list_1)
@@ -160,7 +160,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     limit = "10"
                     params = self.path.split("?")[1]
                     drug = params.split("&")[0].split("=")[1]
-                    beta = Client.company(drug, limit)
+                    beta = Connection.company(drug, limit)
                     Parser.data_company(beta, list_1)
                 elif "&" in self.path:
                     params = self.path.split("?")[1]
@@ -168,19 +168,19 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     limit = params.split("&")[1].split("=")[1]
                     if not limit:
                         limit = "10"
-                    rubi = Client.company(drug, limit)
+                    rubi = Connection.company(drug, limit)
                     Parser.data_company(rubi, list_1)
                 file=HTML.html(list_1)
                 self.wfile.write(bytes(file, "utf8"))
 
-            elif "listDrug" in self.path:
+            elif "listDrugs" in self.path:
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 list_1=[]
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
-                esmeralda = Client.list(self,limit)
+                esmeralda = Connection.list(self,limit)
                 Parser.drug_list(esmeralda, list_1)
                 file=HTML.html(list_1)
                 self.wfile.write(bytes(file, "utf8"))
@@ -193,7 +193,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
 
-                perla= Client.list(self,limit)
+                perla= Connection.list(self,limit)
 
                 Parser.list_company(perla, list_1)
 
@@ -207,7 +207,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 list_1 = []
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
-                blanco = Client.list(self,limit)
+                blanco = Connection.list(self,limit)
                 Parser.data_warnings(blanco, list_1)
                 file= HTML.html(list_1)
                 self.wfile.write(bytes(file, "utf8"))
@@ -276,7 +276,7 @@ Handler = testHTTPRequestHandler
 
 httpd = socketserver.TCPServer((IP, PORT), Handler)
 print("serving at port", PORT)
-print("prueba")
+
 try:
     httpd.serve_forever()
 except KeyboardInterrupt:
