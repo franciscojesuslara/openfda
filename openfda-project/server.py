@@ -55,33 +55,35 @@ Client = OpenFDAClient()
 
 
 class OpenFDAHTML():
-    def html(self, list):
-        list = []
-        intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "\t" + "<body>" + "\n" + "<ol>" + "\n"
-        end = "<\ol>" + "\n" + "<body>" + "<html>"
+    def html(self, list_1):
 
+        intro = "<!doctype html>" + "\n" + "<html>" + "\n" + "\t" + "<body>" + "\n" + "<ol>" + "\n"
+        end = "</ol>" + "\n" + "<body>" + "<html>"
         with open("data.html", "w") as f:
             f.write(intro)
-            for element in list:
-                element_1 = "<\t>" + "<li>" + element
+            for element in list_1:
+                element_1 = "<\t>" + "<li>" + str(element) + "<\li>"
                 f.write(element_1)
             f.write(end)
-
+        with open("data.html", "r") as f:
+            file = f.read()
+        return file
 HTML = OpenFDAHTML()
 
 class OpenFDAparser():
-    def data_drug(self,drugs_1,list):
-        for i in range(len(drugs_1['results'])):
-            if 'active_ingredient' in drugs_1['results'][i]:
-                list.append(drugs_1['results'][i]['active_ingredient'][0])
-
+    def data_drug(self,drugs_1):
+        concha=""
+        for element in drugs_1["results"]:
+            print(element["id"])
+            concha= concha + element["id"]
+        return concha
     def data_company(self, drugs_1, list):
         for element in range(len(drugs_1["results"])):
             try:
                 element=element["openfda"]["manufacturer_name"][0]
                 list.append(element)
             except KeyError:
-                element= " Unknow"
+                element= "Unknow"
                 list.append(element)
 
 
@@ -117,15 +119,17 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 drug = params.split("&")[0].split("=")[1]
                 limit = params.split("&")[1].split("=")[1]
                 drug_limit=Client.active_component(drug,limit)
-                Parser.data_drug(drug_limit, list)
+                print(type(drug_limit))
+                patata = Parser.data_drug(drug_limit)
+
             if "&" not in self.path:
                 params = self.path.split("?")[1]
                 drug = params.split("&")[0].split("=")[1]
                 limit=10
                 drug_limit = Client.active_component(drug, limit)
-                Parser.data_drug(drug_limit, list)
-            HTML.html(list)
-
+                patata=Parser.data_drug(drug_limit)
+            file=HTML.html(patata)
+            self.wfile.write(bytes(file, "utf8"))
 
         elif "searchCompany" in self.path:
             self.send_response(200)
@@ -145,7 +149,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 Parser.data_drug(drug_limit, list)
             HTML.html(list)
 
-        elif "searchCompany" in self.path:
+        elif "listDrug" in self.path:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
