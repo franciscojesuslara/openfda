@@ -180,7 +180,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 list_1=[]
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
-                esmeralda = Client.list(limit)
+                esmeralda = Client.list(self,limit)
                 Parser.drug_list(esmeralda, list_1)
                 file=HTML.html(list_1)
                 self.wfile.write(bytes(file, "utf8"))
@@ -193,7 +193,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
 
-                perla= Client.list(limit)
+                perla= Client.list(self,limit)
 
                 Parser.list_company(perla, list_1)
 
@@ -207,7 +207,7 @@ class testHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 list_1 = []
                 params = self.path.split("?")[1]
                 limit = params.split("=")[1]
-                blanco = Client.list(limit)
+                blanco = Client.list(self,limit)
                 Parser.data_warnings(blanco, list_1)
                 file= HTML.html(list_1)
                 self.wfile.write(bytes(file, "utf8"))
